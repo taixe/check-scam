@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Tin Shipper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #f5f5f5;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+        }
+        input {
+            width: 70%;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .check-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .check-circle.checked {
+            background-color: #28a745;
+        }
+        .report-button {
+            background-color: #dc3545;
+        }
+        .report-button:hover {
+            background-color: #c82333;
+        }
+        .loading {
+            display: none;
+            margin-top: 20px;
+            font-size: 18px;
+            color: #007bff;
+        }
+    </style>
+    <script>
+    function reportScam() {
+        window.location.href = "https://google.com";
+    }
+</script>
+</head>
+<body>
+    <h3>Kiểm Tra Thông Tin Shipper</h3>
+    <input type="text" id="phoneInput" placeholder="Nhập số điện thoại...">
+    <button onclick="checkPhone()">Kiểm tra</button>
+    <div class="loading" id="loadingText">Đang tải...</div>
+    <div class="result" id="result"></div>
+
+	<button onclick="reportScam()" class="report-button">Tố cáo lừa đảo</button>
+ 	<p>GOJO - Cộng đồng Shipper lớn nhất Đà Nẵng</p>
+    <script>
+        function checkPhone() {
+        	var loadingText = document.getElementById("loadingText");
+            loadingText.style.display = "block";
+
+            var phone = document.getElementById("phoneInput").value;
+            var resultDiv = document.getElementById("result");
+
+            // Gọi API và xử lý kết quả
+            fetch(`https://asia-southeast1-zin-mail.cloudfunctions.net/shipper/check-shipper?phone=${phone}`)
+                .then(response => response.json())
+                .then(data => {
+                	 loadingText.style.display = "none";
+                    if (data.err || data.res == null) {
+                        resultDiv.innerHTML = `<p>Lỗi, vui lòng thử lại sau</p>`;
+                    } else {
+                        var total = data.res.res.total;
+                        if (total === 0) {
+                            resultDiv.innerHTML = `<p>Tài khoản này chưa đăng ký với GOJO. Hãy thận trọng.</p> 
+                             <img src="./images/noreg.png" alt="UnVerify Icon">`;
+                        } else {
+                        	 if (data.res.res.isScam) {
+								resultDiv.innerHTML = `
+                                    <p><strong>Tài khoản lừa đảo</strong></p>
+                                    <p>Có người đã tố cáo SĐT <strong>${phone}</strong> lừa đảo, hãy cẩn thận</p>
+                                    <img src="./images/scam.png" alt="Scam Icon">
+                                   
+                                `;
+                             }else{
+                             	var userInfo = data.res.res.list[0];
+		                            if (userInfo.isActive) {
+		                                resultDiv.innerHTML = `
+		                                    <p>Tên: <strong>${userInfo.fullName}</strong></p>
+		                                    <p>Trạng thái: <strong>Đã xác thực</strong></p>
+		                                    <img src="./images/verify.png" alt="Verify Icon">
+		                                    <p>Đã xác thực: <strong>Căn Cước Công Dân/GPLX/Cavet Xe</strong></p>
+
+		                                    
+
+		                                `;
+		                            } else {
+		                                resultDiv.innerHTML = `
+		                                    <p>Tài khoản này đã đăng ký nhưng chưa xác thực thông tin.</p>
+		                                    <img src="./images/unverify.png" alt="UnVerify Icon">
+		                                   
+		                                `;
+		                            }
+                             }
+                            
+                        }
+                    }
+                })
+                .catch(error => {
+                    // Ẩn thông báo đang tải nếu có lỗi
+                    loadingText.style.display = "none";
+                    console.error('Error:', error);
+                    resultDiv.innerHTML = `<p>Lỗi, vui lòng thử lại sau</p>`;
+                });
+        }
+    </script>
+</body>
+</html>
